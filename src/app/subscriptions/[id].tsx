@@ -13,4 +13,4 @@ const SubscriptionDetails = () => {
     )
 }
 
-export default SubscriptionDetails
+export default SubscriptionDetails;
