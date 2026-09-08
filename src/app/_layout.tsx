@@ -1,7 +1,15 @@
+import { ClerkProvider } from "@clerk/expo";
+import { tokenCache } from "@clerk/expo/token-cache";
 import { SplashScreen, Stack } from "expo-router";
 import '@/global.css';
 import {useFonts} from "expo-font";
 import {useEffect} from "react";
+
+const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "";
+
+if (!publishableKey) {
+  throw new Error("Missing EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY. Add your key to .env.\nRun: 1) clerk auth login  2) clerk link  3) clerk env pull — then restart the dev server.");
+}
 
 SplashScreen.preventAutoHideAsync();
 
@@ -24,7 +32,9 @@ export default function RootLayout() {
 
   /* useEffect list watches for change to fontsLoaded and calls the function to hide the splash screen to reveal the app if the fonts load (so that unstyled fonts don't flash*/
 
-  if (!fontsLoaded) return null;
-
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+      {fontsLoaded ? <Stack screenOptions={{ headerShown: false }} /> : null}
+    </ClerkProvider>
+  );
 }
