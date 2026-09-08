@@ -5,7 +5,8 @@ import { FlatList, Image, Text, View } from "react-native";
 import { Link } from "expo-router";
 import {SafeAreaView as RNSafeAreaView} from "react-native-safe-area-context";
 import images from "@/src/constants/images";
-import {HOME_SUBSCRIPTIONS, HOME_USER, UPCOMING_SUBSCRIPTIONS} from "@/src/constants/data";
+import {HOME_SUBSCRIPTIONS, UPCOMING_SUBSCRIPTIONS} from "@/src/constants/data";
+import { useUser } from "@clerk/expo";
 import {HOME_BALANCE} from "@/src/constants/data";
 import {icons} from "@/src/constants/icons";
 import {formatCurrency} from "@/lib/utils";
@@ -18,7 +19,9 @@ const SafeAreaView = styled(RNSafeAreaView);
 /* SafeAreaView is a third-party component from react-native-safe-area-context and Native Wind needs the styled wrapper to enable className support*/
 
 export default function App() {
+  const { user } = useUser();
   const [expandedSubscriptionId, setExpandedSubscriptionId] = useState<string | null>(null);
+  const displayName = user?.firstName || user?.fullName || "there";
   return (
     <SafeAreaView className="flex-1 bg-background p-5">
 
@@ -28,8 +31,8 @@ export default function App() {
             <>
               <View className="home-header">
                 <View className="home-user">
-                  <Image source={images.avatar} className="home-avatar"/>
-                  <Text className="home-user-name">{HOME_USER.name}</Text>
+                  <Image source={user?.imageUrl ? { uri: user.imageUrl } : images.avatar} className="home-avatar"/>
+                  <Text className="home-user-name">{displayName}</Text>
                   <Image source={icons.add} className="home-add-icon" />
                 </View>
               </View>

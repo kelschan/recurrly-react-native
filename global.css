@@ -274,7 +274,7 @@
     }
 
     .auth-title {
-        @apply text-3xl font-sans-bold text-primary;
+        @apply text-center text-3xl font-sans-bold text-primary;
     }
 
     .auth-subtitle {
@@ -297,8 +297,20 @@
         @apply text-sm font-sans-semibold text-primary;
     }
 
+    .auth-input-wrap {
+        @apply flex-row items-center rounded-2xl border border-border bg-background;
+    }
+
     .auth-input {
-        @apply rounded-2xl border border-border bg-background px-4 py-4 text-base font-sans-medium text-primary;
+        @apply min-h-14 flex-1 bg-transparent px-4 py-4 text-base font-sans-medium text-primary;
+    }
+
+    .auth-input-secure {
+        @apply pr-2;
+    }
+
+    .auth-input-toggle {
+        @apply px-4 text-sm font-sans-bold text-accent;
     }
 
     .auth-input-error {
@@ -322,7 +334,31 @@
     }
 
     .auth-button-text {
-        @apply text-base font-sans-bold text-primary;
+        @apply text-base font-sans-bold text-white;
+    }
+
+    .auth-forgot-row {
+        @apply -mt-1 items-end;
+    }
+
+    .auth-trust {
+        @apply mt-6 text-center text-xs font-sans-medium text-muted-foreground;
+    }
+
+    .settings-card {
+        @apply rounded-3xl border border-border bg-card p-5;
+    }
+
+    .settings-kicker {
+        @apply text-xs font-sans-semibold uppercase tracking-[1px] text-muted-foreground;
+    }
+
+    .settings-name {
+        @apply mt-2 text-2xl font-sans-bold text-primary;
+    }
+
+    .settings-email {
+        @apply mt-1 text-base font-sans-medium text-muted-foreground;
     }
 
     .auth-secondary-button {
