@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { useSignUp } from "@clerk/expo";
+import { usePostHog } from 'posthog-react-native';
 import AuthScreen from "@/src/components/auth/AuthScreen";
 import AuthBrand from "@/src/components/auth/AuthBrand";
 import AuthField from "@/src/components/auth/AuthField";
@@ -21,6 +22,7 @@ import {
 const SignUp = () => {
   const router = useRouter();
   const { signUp, errors, fetchStatus } = useSignUp();
+  const posthog = usePostHog();
   const [firstName, setFirstName] = useState("");
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
@@ -83,6 +85,16 @@ const SignUp = () => {
     }
 
     if (signUp.status === "complete") {
+      // Identify the newly registered user — use stable Clerk user ID, set name as person property
+      const userId = signUp.createdUserId;
+      if (userId) {
+        posthog.identify(userId, {
+          $set: { first_name: signUp.firstName ?? undefined },
+        });
+      }
+      posthog.capture('user_signed_up', {
+        has_first_name: Boolean(signUp.firstName),
+      });
       const finalizeError = await finalizeAndEnterApp((params) => signUp.finalize(params), router);
       if (finalizeError) setLocalErrors({ form: finalizeError });
     }

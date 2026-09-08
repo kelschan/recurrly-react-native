@@ -14,14 +14,30 @@ import ListHeading from "@/src/components/ListHeading";
 import UpcomingSubscriptionCard from "@/src/components/UpcomingSubscriptionCard";
 import SubscriptionCard from "@/src/components/SubscriptionCard";
 import { useState } from "react";
+import { usePostHog } from 'posthog-react-native';
 
 const SafeAreaView = styled(RNSafeAreaView);
 /* SafeAreaView is a third-party component from react-native-safe-area-context and Native Wind needs the styled wrapper to enable className support*/
 
 export default function App() {
   const { user } = useUser();
+  const posthog = usePostHog();
   const [expandedSubscriptionId, setExpandedSubscriptionId] = useState<string | null>(null);
   const displayName = user?.firstName || user?.fullName || "there";
+
+  const handleSubscriptionPress = (item: typeof HOME_SUBSCRIPTIONS[number]) => {
+    setExpandedSubscriptionId((currentId) => {
+      const isExpanding = currentId !== item.id;
+      if (isExpanding) {
+        posthog.capture('subscription_expanded', {
+          subscription_name: item.name,
+          subscription_billing: item.billing,
+          ...(item.category? { subscription_category: item.category } : {}),
+        });
+      }
+      return isExpanding ? item.id : null;
+    });
+  };
   return (
     <SafeAreaView className="flex-1 bg-background p-5">
 
@@ -71,8 +87,8 @@ export default function App() {
           renderItem={({ item }) => (
             <SubscriptionCard 
               {...item} 
-              expanded={expandedSubscriptionId=== item.id}
-              onPress={() => setExpandedSubscriptionId((currentId) => (currentId === item.id ? null : item.id))}
+              expanded={expandedSubscriptionId === item.id}
+              onPress={() => handleSubscriptionPress(item)}
             />
           )}
           extraData={(expandedSubscriptionId)}

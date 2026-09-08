@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { useSignIn } from "@clerk/expo";
+import { usePostHog } from 'posthog-react-native';
 import AuthScreen from "@/src/components/auth/AuthScreen";
 import AuthBrand from "@/src/components/auth/AuthBrand";
 import AuthField from "@/src/components/auth/AuthField";
@@ -19,6 +20,7 @@ import {
 const SignIn = () => {
   const router = useRouter();
   const { signIn, errors, fetchStatus } = useSignIn();
+  const posthog = usePostHog();
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
@@ -45,6 +47,14 @@ const SignIn = () => {
     }
 
     if (signIn.status === "complete") {
+      // Identify the signed-in user with their stable Clerk user ID
+      const userId = signIn.createdUserId;
+      if (userId) {
+        posthog.identify(userId);
+      }
+      posthog.capture('user_signed_in', {
+        method: 'password',
+      });
       const finalizeError = await finalizeAndEnterApp((params) => signIn.finalize(params), router);
       if (finalizeError) setLocalErrors({ form: finalizeError });
       return;
@@ -73,6 +83,9 @@ const SignIn = () => {
     }
 
     if (signIn.status === "complete") {
+      posthog.capture('user_signed_in', {
+        method: 'email_code',
+      });
       const finalizeError = await finalizeAndEnterApp((params) => signIn.finalize(params), router);
       if (finalizeError) setLocalErrors({ form: finalizeError });
     }

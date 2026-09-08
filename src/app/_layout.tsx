@@ -1,9 +1,11 @@
 import { ClerkProvider, useAuth } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
-import { SplashScreen, Stack } from "expo-router";
+import { SplashScreen, Stack, usePathname, useGlobalSearchParams } from "expo-router";
 import '@/global.css';
 import {useFonts} from "expo-font";
-import {useEffect} from "react";
+import {useEffect, useRef} from "react";
+import { PostHogProvider } from 'posthog-react-native';
+import { posthog } from '@/src/config/posthog';
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY ?? "";
 
@@ -36,6 +38,9 @@ export default function RootLayout() {
 
 function AppContent({ fontsLoaded }: { fontsLoaded: boolean }) {
   const { isLoaded: clerkLoaded } = useAuth();
+  const pathname = usePathname();
+  const params = useGlobalSearchParams();
+  const previousPathname = useRef<string | undefined>(undefined);
 
   useEffect(() => {
     if (fontsLoaded && clerkLoaded) {
@@ -43,11 +48,34 @@ function AppContent({ fontsLoaded }: { fontsLoaded: boolean }) {
     }
   }, [fontsLoaded, clerkLoaded]);
 
+  // Manual screen tracking for Expo Router
+  // @see https://docs.expo.dev/router/reference/screen-tracking/
+  useEffect(() => {
+    if (previousPathname.current !== pathname) {
+      posthog.screen(pathname, {
+        previous_screen: previousPathname.current ?? null,
+        ...params,
+      });
+      previousPathname.current = pathname;
+    }
+  }, [pathname, params]);
+
   if (!fontsLoaded || !clerkLoaded) {
     return null;
   }
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <PostHogProvider
+      client={posthog}
+      autocapture={{
+        captureScreens: false, // Manual tracking via posthog.screen() above
+        captureTouches: true,
+        propsToCapture: ['testID'],
+      }}
+    >
+      <Stack screenOptions={{ headerShown: false }} />
+    </PostHogProvider>
+  );
 }
 
   /* useEffect list watches for change to fontsLoaded and clerkLoaded and calls the function to hide the splash screen to reveal the app if the fonts load (so that unstyled fonts don't flash*/
