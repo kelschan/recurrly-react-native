@@ -1,4 +1,4 @@
-import { ClerkProvider } from "@clerk/expo";
+import { ClerkProvider, useAuth } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
 import { SplashScreen, Stack } from "expo-router";
 import '@/global.css';
@@ -24,17 +24,31 @@ export default function RootLayout() {
   })
   /* In the above, we're creating a dictionary, where the require () returns a boolean variable indicating if the font file has loaded or not */
 
-  useEffect(() => {
-    if(fontsLoaded) {
-      SplashScreen.hideAsync()
-    }
-  }, [fontsLoaded])
-
-  /* useEffect list watches for change to fontsLoaded and calls the function to hide the splash screen to reveal the app if the fonts load (so that unstyled fonts don't flash*/
-
   return (
-    <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-      {fontsLoaded ? <Stack screenOptions={{ headerShown: false }} /> : null}
+    <ClerkProvider
+      publishableKey={publishableKey}
+      tokenCache={tokenCache}
+    >
+      <AppContent fontsLoaded={fontsLoaded} />
     </ClerkProvider>
   );
 }
+
+function AppContent({ fontsLoaded }: { fontsLoaded: boolean }) {
+  const { isLoaded: clerkLoaded } = useAuth();
+
+  useEffect(() => {
+    if (fontsLoaded && clerkLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded, clerkLoaded]);
+
+  if (!fontsLoaded || !clerkLoaded) {
+    return null;
+  }
+
+  return <Stack screenOptions={{ headerShown: false }} />;
+}
+
+  /* useEffect list watches for change to fontsLoaded and clerkLoaded and calls the function to hide the splash screen to reveal the app if the fonts load (so that unstyled fonts don't flash*/
+
