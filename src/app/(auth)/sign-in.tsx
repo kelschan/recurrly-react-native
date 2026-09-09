@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 import { Link, useRouter } from "expo-router";
 import { useSignIn } from "@clerk/expo";
+import { usePostHog } from 'posthog-react-native';
 import AuthScreen from "@/src/components/auth/AuthScreen";
 import AuthBrand from "@/src/components/auth/AuthBrand";
 import AuthField from "@/src/components/auth/AuthField";
@@ -19,6 +20,7 @@ import {
 const SignIn = () => {
   const router = useRouter();
   const { signIn, errors, fetchStatus } = useSignIn();
+  const posthog = usePostHog();
   const [emailAddress, setEmailAddress] = useState("");
   const [password, setPassword] = useState("");
   const [code, setCode] = useState("");
@@ -45,10 +47,18 @@ const SignIn = () => {
     }
 
     if (signIn.status === "complete") {
-      const finalizeError = await finalizeAndEnterApp((params) => signIn.finalize(params), router);
-      if (finalizeError) setLocalErrors({ form: finalizeError });
-      return;
-    }
+        posthog.capture("user_signed_in", { method: "password" });
+        const finalizeError = await signIn.finalize({
+          navigate: ({ session, decorateUrl }) => {
+            const userId = session?.user?.id;
+            if (userId) posthog.identify(userId);
+            if (session?.currentTask) return;
+            router.replace("/(tabs)");
+          },
+        }).then(({ error }) => (error ? getClerkErrorMessage(error) : null));
+      
+        if (finalizeError) setLocalErrors({ form: finalizeError });
+      }
 
     if (signIn.status === "needs_client_trust" || signIn.status === "needs_second_factor") {
       const emailFactor = signIn.supportedSecondFactors.find((factor) => factor.strategy === "email_code");
@@ -73,6 +83,9 @@ const SignIn = () => {
     }
 
     if (signIn.status === "complete") {
+      posthog.capture('user_signed_in', {
+        method: 'email_code',
+      });
       const finalizeError = await finalizeAndEnterApp((params) => signIn.finalize(params), router);
       if (finalizeError) setLocalErrors({ form: finalizeError });
     }
