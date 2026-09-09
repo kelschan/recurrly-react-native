@@ -2,14 +2,22 @@ import {Image, Pressable, View, Text} from 'react-native'
 import React from 'react'
 import { formatCurrency, formatStatusLabel, formatSubscriptionDateTime } from '@/lib/utils';
 import clsx from "clsx";
+import { icons } from "@/src/constants/icons";
+import { colors } from "@/src/constants/theme";
 
 const SubscriptionCard = ({ name, price, currency, icon, billing, color, category, plan, renewalDate, expanded, onPress, paymentMethod, startDate, status }: SubscriptionCardProps) => {
     const fallback = "Not provided";
+    const isWalletIcon = icon === icons.wallet;
     return (
         < Pressable onPress={onPress} className={clsx('sub-card', expanded ? 'sub-card-expanded' : 'bg-card')} style={!expanded && color ? { backgroundColor: color} : undefined}>
             <View className="sub-head">
                 <View className="sub-main">
-                    <Image source={icon} className="sub-icon" />
+                    <Image
+                        source={icon}
+                        className="sub-icon"
+                        resizeMode="contain"
+                        tintColor={isWalletIcon ? colors.primary : undefined}
+                    />
                     <View className="sub-copy">
                         <Text numberOfLines={1} className="sub-title">
                             {name}
