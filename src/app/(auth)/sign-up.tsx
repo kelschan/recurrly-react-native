@@ -89,7 +89,7 @@ const SignUp = () => {
       const userId = signUp.createdUserId;
       if (userId) {
         posthog.identify(userId, {
-          $set: { first_name: signUp.firstName ?? undefined },
+          $set: signUp.firstName ? { first_name: signUp.firstName } : {},
         });
       }
       posthog.capture('user_signed_up', {

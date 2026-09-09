@@ -27,9 +27,9 @@ export const posthog = new PostHog(projectToken ?? 'placeholder_key', {
   host,
   disabled: !isPostHogConfigured,
   captureAppLifecycleEvents: true,
-  debug: __DEV__,
   flushAt: 20,
   flushInterval: 10000,
 });
 
 export const isPostHogEnabled = isPostHogConfigured;
+

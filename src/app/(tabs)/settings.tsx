@@ -13,10 +13,10 @@ const Settings = () => {
   const displayName = user?.firstName || user?.fullName || "Recurly member";
   const email = user?.primaryEmailAddress?.emailAddress ?? "No email on file";
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
     posthog.capture('user_signed_out');
+    await signOut();
     posthog.reset();
-    signOut();
   };
 
   return (

@@ -13,6 +13,7 @@ import dayjs from "dayjs";
 import AuthField from "@/src/components/auth/AuthField";
 import AuthButton from "@/src/components/auth/AuthButton";
 import { icons } from "@/src/constants/icons";
+import { posthog } from "@/src/config/posthog";
 
 const FREQUENCIES = ["Monthly", "Yearly"] as const;
 const CATEGORIES = [
@@ -98,6 +99,14 @@ const CreateSubscriptionModal = ({ visible, onClose, onCreate }: CreateSubscript
       renewalDate: renewalDate.toISOString(),
       icon: icons.wallet,
       color: CATEGORY_COLORS[selectedCategory],
+    });
+
+
+    posthog.capture('subscription_created', {
+      subscription_name: trimmedName,
+      subscription_price: parsedPrice,
+      subscription_frequency: frequency,
+      subscription_category: selectedCategory
     });
 
     resetForm();

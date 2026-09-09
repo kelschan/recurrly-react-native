@@ -47,18 +47,18 @@ const SignIn = () => {
     }
 
     if (signIn.status === "complete") {
-      // Identify the signed-in user with their stable Clerk user ID
-      const userId = signIn.createdUserId;
-      if (userId) {
-        posthog.identify(userId);
+        posthog.capture("user_signed_in", { method: "password" });
+        const finalizeError = await signIn.finalize({
+          navigate: ({ session, decorateUrl }) => {
+            const userId = session?.user?.id;
+            if (userId) posthog.identify(userId);
+            if (session?.currentTask) return;
+            router.replace("/(tabs)");
+          },
+        }).then(({ error }) => (error ? getClerkErrorMessage(error) : null));
+      
+        if (finalizeError) setLocalErrors({ form: finalizeError });
       }
-      posthog.capture('user_signed_in', {
-        method: 'password',
-      });
-      const finalizeError = await finalizeAndEnterApp((params) => signIn.finalize(params), router);
-      if (finalizeError) setLocalErrors({ form: finalizeError });
-      return;
-    }
 
     if (signIn.status === "needs_client_trust" || signIn.status === "needs_second_factor") {
       const emailFactor = signIn.supportedSecondFactors.find((factor) => factor.strategy === "email_code");
